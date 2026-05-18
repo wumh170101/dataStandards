@@ -491,7 +491,7 @@
     <div class="header">
         <div class="title">
             <h1>📋 数据标准管理</h1>
-            <p>标准详情 · 映射配置（即时添加/移除） · 落标检查 · 版本管理</p>
+            <p>标准详情 · 映射配置（即时添加/移除） · 落标评估 · 版本管理</p>
         </div>
         <button class="btn-primary" id="createStandardBtn">+ 新建标准</button>
     </div>
@@ -509,7 +509,7 @@
             <div class="tabs" id="tabs">
                 <div class="tab active" data-tab="basic">标准详情</div>
                 <div class="tab" data-tab="mapping">映射配置</div>
-                <div class="tab" data-tab="compliance">落标检查</div>
+                <div class="tab" data-tab="compliance">落标评估</div>
                 <div class="tab" data-tab="version">版本历史</div>
             </div>
             <div id="tabContent" class="tab-content">
@@ -841,10 +841,11 @@
         }
         
         function refreshBoth() {
+            rightFields = mappings[selectedStandardId] || [];
             renderTree();
             renderRightList();
-            document.getElementById('leftCount').innerText = allFields.length - (mappings[selectedStandardId] || []).length;
-            document.getElementById('rightCount').innerText = (mappings[selectedStandardId] || []).length;
+            document.getElementById('leftCount').innerText = allFields.length - rightFields.length;
+            document.getElementById('rightCount').innerText = rightFields.length;
         }
         
         // 添加选中字段（即时添加，无弹窗）
@@ -856,7 +857,7 @@
                     selectedFields.push(fieldData);
                 }
             });
-            if (selectedFields.length === 0) { alert("请先在左侧勾选要添加的字段"); return; }
+            if (selectedFields.length === 0) { return; }
             if (!mappings[selectedStandardId]) mappings[selectedStandardId] = [];
             let added = 0;
             selectedFields.forEach(f => {
@@ -866,18 +867,15 @@
                 }
             });
             if (added) {
-                // 清空左侧选中
                 selectedLeftIds.clear();
                 refreshBoth();
-                // 可选：显示简洁提示（不弹窗也可，但保留提示）
-                // 此处保留轻提示，但不影响体验
             }
         }
         
         // 移除选中字段（即时移除）
         function removeSelected() {
             const selected = rightFields.filter(f => selectedRightIds.has(f.id));
-            if (selected.length === 0) { alert("请先在右侧勾选要移除的字段"); return; }
+            if (selected.length === 0) { return; }
             if (mappings[selectedStandardId]) {
                 const idsToRemove = new Set(selected.map(f => f.id));
                 mappings[selectedStandardId] = mappings[selectedStandardId].filter(m => !idsToRemove.has(m.id));
@@ -945,7 +943,7 @@
         const std = getStandardById(selectedStandardId);
         if (!std) return;
         const stdMappings = mappings[selectedStandardId] || [];
-        let html = `<div class="button-bar" style="justify-content:center;"><button class="btn-primary" id="runComplianceBtn">▶ 执行落标检查</button></div><div id="complianceResult"></div>`;
+        let html = `<div class="button-bar" style="justify-content:center;"><button class="btn-primary" id="runComplianceBtn">▶ 执行</button></div><div id="complianceResult"></div>`;
         document.getElementById('tabContent').innerHTML = html;
         document.getElementById('runComplianceBtn').addEventListener('click', () => {
             if (stdMappings.length === 0) { document.getElementById('complianceResult').innerHTML = '<div class="info-note">⚠️ 请先在「映射配置」中添加映射关系</div>'; return; }
