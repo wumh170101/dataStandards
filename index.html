@@ -502,6 +502,9 @@
                 <span>📌 标准列表</span>
                 <span class="tag" id="totalCount">0个标准</span>
             </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索标准名称或编码..." style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px; font-size:0.8rem;">
+            </div>
             <div class="scroll-area" id="standardListContainer"></div>
         </div>
 
@@ -593,18 +596,27 @@
     }
     function getYesNoClass(value) { return value === '是' ? 'yes-badge' : 'no-badge'; }
 
-    function renderStandardList() {
+    function renderStandardList(searchTerm = '') {
         const container = document.getElementById('standardListContainer');
-        container.innerHTML = standards.map(s => `
+        let filteredStandards = standards;
+        if (searchTerm) {
+            const lowerTerm = searchTerm.toLowerCase();
+            filteredStandards = standards.filter(s => 
+                s.name.toLowerCase().includes(lowerTerm) || 
+                s.code.toLowerCase().includes(lowerTerm) ||
+                s.englishName.toLowerCase().includes(lowerTerm)
+            );
+        }
+        container.innerHTML = filteredStandards.map(s => `
             <div class="standard-item ${selectedStandardId === s.id ? 'active' : ''}" data-id="${s.id}">
                 <div><strong>${escapeHtml(s.name)}</strong><div style="font-size:0.65rem;">${escapeHtml(s.code)}</div></div>
                 <div><span class="indicator-badge ${s.isIndicator ? 'badge-yes' : 'badge-no'}">${s.isIndicator ? '指标' : '字段'}</span><div class="tag">${s.version}</div></div>
             </div>
         `).join('');
         document.querySelectorAll('.standard-item').forEach(el => {
-            el.addEventListener('click', () => { selectedStandardId = el.dataset.id; renderStandardList(); renderCurrentTab(); });
+            el.addEventListener('click', () => { selectedStandardId = el.dataset.id; renderStandardList(searchTerm); renderCurrentTab(); });
         });
-        document.getElementById('totalCount').innerText = standards.length + '个标准';
+        document.getElementById('totalCount').innerText = filteredStandards.length + '个标准';
     }
 
     function renderCurrentTab() {
@@ -1101,6 +1113,9 @@
     });
 
     document.getElementById('createStandardBtn').addEventListener('click', openCreateDialog);
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        renderStandardList(e.target.value);
+    });
     renderStandardList();
     renderCurrentTab();
 </script>
