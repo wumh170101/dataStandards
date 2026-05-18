@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>数据标准管理 | 标准详情（进度条）· 映射配置（即时添加）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f5;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            color: #1a2c3e;
+            padding: 1rem;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #cfdfed;
+            padding-bottom: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .title h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1f5e8e, #2b8bb3);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .title p {
+            color: #5b7d9e;
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
+        }
+
+        .btn-primary {
+            background: #1f6392;
+            border: none;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .btn-primary:hover { background: #0f4b70; }
+
+        .btn-secondary {
+            background: #eef2f8;
+            border: 1px solid #caddf0;
+            color: #2b5b82;
+            padding: 0.35rem 0.9rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #b9cfe5;
+            padding: 0.25rem 0.7rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .btn-danger {
+            background: #fff3f0;
+            border: 1px solid #f0cdc4;
+            color: #c23d22;
+        }
+
+        .two-columns {
+            display: flex;
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            width: 280px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2edf3;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .right-panel {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2edf3;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #eef3f8;
+            background: #fafdff;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .scroll-area {
+            overflow-y: auto;
+            flex: 1;
+            padding: 0.5rem;
+        }
+
+        .standard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 0.8rem;
+            margin: 4px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.1s;
+            border-left: 3px solid transparent;
+        }
+
+        .standard-item:hover { background: #f0f7fc; }
+        .standard-item.active {
+            background: #e2f0f9;
+            border-left-color: #2b8bb3;
+        }
+
+        .indicator-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 30px;
+            font-size: 0.6rem;
+        }
+        .badge-yes { background: #e2f3e4; color: #2c6e3c; }
+        .badge-no { background: #f0eef2; color: #8b7a9e; }
+
+        .tag {
+            background: #eef2fa;
+            padding: 0.15rem 0.4rem;
+            border-radius: 12px;
+            font-size: 0.65rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #8ba6be;
+            font-size: 0.8rem;
+        }
+
+        /* Tab 样式 */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #eef3f8;
+            background: #fafdff;
+            padding: 0 1rem;
+            flex-shrink: 0;
+        }
+        .tab {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: 0.1s;
+            color: #6e95b5;
+        }
+        .tab:hover { color: #1f6392; }
+        .tab.active {
+            color: #1f6392;
+            border-bottom-color: #1f6392;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        /* 进度条导航 */
+        .progress-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eef3f8;
+            background: #fafdff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .progress-item {
+            padding: 0.3rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.1s;
+            background: #eef2fa;
+            color: #5b7d9e;
+        }
+        .progress-item:hover {
+            background: #e2f0f9;
+            color: #1f6392;
+        }
+        .progress-item.active {
+            background: #1f6392;
+            color: white;
+        }
+
+        .section-anchor {
+            scroll-margin-top: 80px;
+        }
+
+        /* 表单样式 */
+        .form-group { margin-bottom: 0.8rem; }
+        label {
+            font-weight: 600;
+            font-size: 0.7rem;
+            display: block;
+            margin-bottom: 0.2rem;
+            color: #2b5b82;
+        }
+        .row-2col { display: flex; gap: 0.8rem; }
+        .row-3col { display: flex; gap: 0.8rem; }
+
+        .attr-card {
+            background: #f9fdfe;
+            border-radius: 14px;
+            padding: 0.6rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid #e3f0f5;
+        }
+        .attr-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #1f5e7e;
+            padding-left: 0.3rem;
+            border-left: 3px solid #2b8bb3;
+        }
+
+        .button-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.6rem;
+            margin-top: 1rem;
+            padding-top: 0.8rem;
+            border-top: 1px solid #eef2f7;
+        }
+
+        .info-note {
+            background: #eaf5fb;
+            padding: 0.4rem;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            margin-top: 0.6rem;
+        }
+
+        /* 树形资产样式 */
+        .asset-tree-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.3rem;
+        }
+        .tree-node {
+            list-style: none;
+            margin-left: 0;
+        }
+        .tree-node-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: 0.1s;
+        }
+        .tree-node-item:hover {
+            background: #f0f7fc;
+        }
+        .tree-node-item.active {
+            background: #e2f0f9;
+        }
+        .tree-checkbox {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        .tree-expand {
+            width: 18px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+        }
+        .tree-label {
+            flex: 1;
+            cursor: pointer;
+        }
+        .tree-children {
+            margin-left: 1.5rem;
+        }
+        .search-input {
+            padding: 0.3rem 0.5rem;
+            border-radius: 20px;
+            border: 1px solid #caddf0;
+            font-size: 0.7rem;
+            width: 100%;
+        }
+
+        .mapping-layout {
+            display: flex;
+            gap: 1rem;
+            height: 100%;
+            min-height: 450px;
+        }
+        .mapping-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #eef3f8;
+            border-radius: 16px;
+            background: #fafdff;
+            overflow: hidden;
+        }
+        .mapping-middle {
+            width: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+        .mapping-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #eef3f8;
+            border-radius: 16px;
+            background: #fafdff;
+            overflow: hidden;
+        }
+        .section-header {
+            padding: 0.5rem 0.8rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #eef3f8;
+            font-weight: 600;
+            font-size: 0.7rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .mapped-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.3rem;
+        }
+        .mapped-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            margin: 2px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: 0.1s;
+        }
+        .mapped-item:hover { background: #f0f7fc; }
+        .mapped-checkbox {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        .mapped-name {
+            flex: 1;
+            cursor: pointer;
+        }
+        .mapped-path {
+            font-size: 0.6rem;
+            color: #8ba6be;
+        }
+        .batch-bar {
+            display: flex;
+            gap: 0.3rem;
+            align-items: center;
+        }
+        .search-wrapper {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eef3f8;
+        }
+
+        .compliance-summary {
+            background: linear-gradient(135deg, #f0f9ff, #e8f4f8);
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .compliance-rate { font-size: 2rem; font-weight: 700; }
+        .rate-high { color: #2c6e3c; }
+        .rate-medium { color: #e68a2e; }
+        .rate-low { color: #c23d22; }
+
+        .report-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+        .report-table th, .report-table td { padding: 0.4rem; text-align: left; border-bottom: 1px solid #eef3f8; }
+        .fail-item { background: #fff3f0; }
+
+        .security-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 30px; font-size: 0.65rem; }
+        .security-important { background: #fff3e0; color: #c47d2e; }
+        .security-sensitive { background: #ffe6e0; color: #c23d22; }
+        .security-normal { background: #eef2fa; color: #5b7d9e; }
+
+        .yes-no-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 30px; font-size: 0.65rem; background: #eef2fa; }
+        .yes-badge { background: #e2f3e4; color: #2c6e3c; }
+        .no-badge { background: #f0eef2; color: #8b7a9e; }
+
+        .version-list { max-height: 300px; overflow-y: auto; }
+        .version-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem; border-bottom: 1px solid #eef3f8;
+        }
+        .version-current { background: #e2f0f9; }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-container {
+            background: white; width: 780px; max-width: 90%; max-height: 85vh;
+            border-radius: 24px; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            padding: 1rem 1.5rem; background: #fafdff; border-bottom: 1px solid #eef2f8;
+            font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between;
+        }
+        .modal-body { padding: 1.2rem 1.5rem; overflow-y: auto; }
+        .modal-footer {
+            padding: 0.8rem 1.5rem; border-top: 1px solid #eef2f8;
+            display: flex; justify-content: flex-end; gap: 0.8rem;
+        }
+        .modal-tabs {
+            display: flex; border-bottom: 1px solid #eef3f8; background: #fafdff;
+            padding: 0 1rem; flex-shrink: 0;
+        }
+        .modal-tab {
+            padding: 0.5rem 1rem; font-size: 0.7rem; cursor: pointer;
+            border-bottom: 2px solid transparent; color: #6e95b5;
+        }
+        .modal-tab.active { color: #1f6392; border-bottom-color: #1f6392; font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header">
+        <div class="title">
+            <h1>📋 数据标准管理</h1>
+            <p>标准详情 · 映射配置（即时添加/移除） · 落标检查 · 版本管理</p>
+        </div>
+        <button class="btn-primary" id="createStandardBtn">+ 新建标准</button>
+    </div>
+
+    <div class="two-columns">
+        <div class="left-panel">
+            <div class="panel-header">
+                <span>📌 标准列表</span>
+                <span class="tag" id="totalCount">0个标准</span>
+            </div>
+            <div class="scroll-area" id="standardListContainer"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="tabs" id="tabs">
+                <div class="tab active" data-tab="basic">标准详情</div>
+                <div class="tab" data-tab="mapping">映射配置</div>
+                <div class="tab" data-tab="compliance">落标检查</div>
+                <div class="tab" data-tab="version">版本历史</div>
+            </div>
+            <div id="tabContent" class="tab-content">
+                <div class="empty-state">✨ 请从左侧选择标准</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== Mock 数据 ====================
+    let standards = [
+        { 
+            id: "std1", name: "手机号字段标准", englishName: "MobilePhoneStandard", code: "STD_MOBILE", version: "v1.0",
+            isIndicator: false,
+            business: { definition: "存储用户手机号码，用于登录验证", owner: "王芳" },
+            tech: { dataType: "VARCHAR", length: "11", precision: "", format: "纯数字", required: "是", unique: "否", valueRange: "^1[3-9]\\d{9}$" },
+            manage: { department: "数据治理部", manager: "张明" },
+            security: { level: "敏感" },
+            createTime: "2025-01-10"
+        },
+        { 
+            id: "std2", name: "订单金额字段标准", englishName: "OrderAmountStandard", code: "STD_AMOUNT", version: "v1.0",
+            isIndicator: false,
+            business: { definition: "订单实际支付金额，单位元", owner: "李雷" },
+            tech: { dataType: "DECIMAL", length: "18", precision: "2", format: "两位小数", required: "是", unique: "否", valueRange: "≥0" },
+            manage: { department: "财务数据部", manager: "韩梅梅" },
+            security: { level: "重要" },
+            createTime: "2025-01-10"
+        },
+        { 
+            id: "std3", name: "日活跃用户数(DAU)", englishName: "DailyActiveUsers", code: "STD_DAU", version: "v1.0",
+            isIndicator: true,
+            indicator: { period: "日", formula: "COUNT(DISTINCT user_id) WHERE login_date = 统计日" },
+            business: { definition: "当日至少有一次登录行为的去重用户数", owner: "张运营" },
+            tech: { dataType: "BIGINT", length: "", precision: "", format: "", required: "是", unique: "否", valueRange: "100万-500万" },
+            manage: { department: "运营数据部", manager: "赵数据" },
+            security: { level: "其他一般" },
+            createTime: "2025-01-10"
+        }
+    ];
+
+    // 资产数据（系统/表/字段）
+    const assetData = {
+        systems: [
+            { id: "sys1", name: "订单系统", tables: [
+                { id: "tbl1_1", name: "order_info", fields: [
+                    { id: "fld1_1_1", name: "order_id", type: "VARCHAR", length: "32" },
+                    { id: "fld1_1_2", name: "mobile", type: "VARCHAR", length: "11" },
+                    { id: "fld1_1_3", name: "order_amount", type: "DECIMAL", length: "18", precision: "2" }
+                ] },
+                { id: "tbl1_2", name: "order_detail", fields: [
+                    { id: "fld1_2_1", name: "amount", type: "DECIMAL", length: "18", precision: "2" }
+                ] }
+            ] },
+            { id: "sys2", name: "用户中心", tables: [
+                { id: "tbl2_1", name: "user_info", fields: [
+                    { id: "fld2_1_1", name: "user_id", type: "VARCHAR", length: "32" },
+                    { id: "fld2_1_2", name: "phone_number", type: "VARCHAR", length: "11" },
+                    { id: "fld2_1_3", name: "cellphone", type: "VARCHAR", length: "20" }
+                ] }
+            ] }
+        ]
+    };
+
+    let mappings = {};
+    let selectedStandardId = "std1";
+    let currentTab = "basic";
+    let allVersions = [
+        { id: "std1_v1", baseId: "std1", name: "手机号字段标准", version: "v1.0", createTime: "2025-01-10" },
+        { id: "std2_v1", baseId: "std2", name: "订单金额字段标准", version: "v1.0", createTime: "2025-01-10" },
+        { id: "std3_v1", baseId: "std3", name: "日活跃用户数(DAU)", version: "v1.0", createTime: "2025-01-10" }
+    ];
+
+    function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+    function getStandardById(id) { return standards.find(s => s.id === id); }
+    function getSecurityClass(level) {
+        if (level === '重要') return 'security-important';
+        if (level === '敏感') return 'security-sensitive';
+        return 'security-normal';
+    }
+    function getYesNoClass(value) { return value === '是' ? 'yes-badge' : 'no-badge'; }
+
+    function renderStandardList() {
+        const container = document.getElementById('standardListContainer');
+        container.innerHTML = standards.map(s => `
+            <div class="standard-item ${selectedStandardId === s.id ? 'active' : ''}" data-id="${s.id}">
+                <div><strong>${escapeHtml(s.name)}</strong><div style="font-size:0.65rem;">${escapeHtml(s.code)}</div></div>
+                <div><span class="indicator-badge ${s.isIndicator ? 'badge-yes' : 'badge-no'}">${s.isIndicator ? '指标' : '字段'}</span><div class="tag">${s.version}</div></div>
+            </div>
+        `).join('');
+        document.querySelectorAll('.standard-item').forEach(el => {
+            el.addEventListener('click', () => { selectedStandardId = el.dataset.id; renderStandardList(); renderCurrentTab(); });
+        });
+        document.getElementById('totalCount').innerText = standards.length + '个标准';
+    }
+
+    function renderCurrentTab() {
+        if (currentTab === 'basic') renderBasicTab();
+        else if (currentTab === 'mapping') renderMappingTab();
+        else if (currentTab === 'compliance') renderComplianceTab();
+        else if (currentTab === 'version') renderVersionTab();
+    }
+
+    // 标准详情 Tab - 进度条版本
+    function renderBasicTab() {
+        const std = getStandardById(selectedStandardId);
+        if (!std) { document.getElementById('tabContent').innerHTML = '<div class="empty-state">标准不存在</div>'; return; }
+        const isIndicator = std.isIndicator;
+        const progressItems = [
+            { id: "basicInfo", label: "基本信息" }, { id: "businessAttr", label: "业务属性" },
+            { id: "techAttr", label: "技术属性" }, { id: "manageAttr", label: "管理属性" },
+            { id: "securityAttr", label: "安全属性" }
+        ];
+        if (isIndicator) progressItems.push({ id: "indicatorAttr", label: "指标属性" });
+        
+        let html = `<div style="display:flex; justify-content:flex-end; margin-bottom:1rem;"><button class="btn-outline" id="editBasicBtn">✏️ 编辑标准</button></div>
+        <div class="progress-nav">${progressItems.map(item => `<span class="progress-item" data-target="${item.id}">${item.label}</span>`).join('')}</div>
+        <div id="basicInfo" class="section-anchor"><div class="attr-card"><div class="attr-title">📋 基本信息</div><div class="row-2col"><div><label>标准名称</label><div>${escapeHtml(std.name)}</div></div><div><label>标准英文名</label><div>${escapeHtml(std.englishName || '—')}</div></div><div><label>标准编码</label><div>${escapeHtml(std.code)}</div></div></div><div><label>说明</label><div>${escapeHtml(std.description || '—')}</div></div><div><label>🏷️ 指标标签</label><div><span class="indicator-badge ${std.isIndicator ? 'badge-yes' : 'badge-no'}">${std.isIndicator ? '是' : '否'}</span></div></div></div></div>
+        <div id="businessAttr" class="section-anchor"><div class="attr-card"><div class="attr-title">🧾 业务属性</div><div class="row-2col"><div><label>业务定义</label><div>${escapeHtml(std.business?.definition || '—')}</div></div><div><label>业务负责人</label><div>${escapeHtml(std.business?.owner || '—')}</div></div></div></div></div>
+        <div id="techAttr" class="section-anchor"><div class="attr-card"><div class="attr-title">⚙️ 技术属性</div><div class="row-3col"><div><label>数据类型</label><div>${escapeHtml(std.tech?.dataType || '—')}</div></div><div><label>长度</label><div>${escapeHtml(std.tech?.length || '—')}</div></div><div><label>精度</label><div>${escapeHtml(std.tech?.precision || '—')}</div></div></div>
+        <div class="row-3col"><div><label>显示格式</label><div>${escapeHtml(std.tech?.format || '—')}</div></div><div><label>必填</label><div><span class="yes-no-badge ${getYesNoClass(std.tech?.required)}">${std.tech?.required || '否'}</span></div></div><div><label>唯一</label><div><span class="yes-no-badge ${getYesNoClass(std.tech?.unique)}">${std.tech?.unique || '否'}</span></div></div></div>
+        <div><label>值域</label><div>${escapeHtml(std.tech?.valueRange || '—')}</div></div></div></div>
+        <div id="manageAttr" class="section-anchor"><div class="attr-card"><div class="attr-title">📋 管理属性</div><div class="row-2col"><div><label>管理部门</label><div>${escapeHtml(std.manage?.department || '—')}</div></div><div><label>管理人</label><div>${escapeHtml(std.manage?.manager || '—')}</div></div></div></div></div>
+        <div id="securityAttr" class="section-anchor"><div class="attr-card"><div class="attr-title">🔐 安全属性</div><div><label>安全等级</label><div><span class="security-badge ${getSecurityClass(std.security?.level)}">${escapeHtml(std.security?.level || '其他一般')}</span></div></div></div></div>`;
+        if (isIndicator) {
+            html += `<div id="indicatorAttr" class="section-anchor"><div class="attr-card"><div class="attr-title">📊 指标属性</div><div class="row-2col"><div><label>统计周期</label><div>${escapeHtml(std.indicator?.period || '—')}</div></div><div><label>计算公式</label><div>${escapeHtml(std.indicator?.formula || '—')}</div></div></div></div></div>`;
+        }
+        document.getElementById('tabContent').innerHTML = html;
+        
+        const progressItemsDom = document.querySelectorAll('.progress-item');
+        progressItemsDom.forEach(item => {
+            item.addEventListener('click', () => {
+                const target = document.getElementById(item.dataset.target);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+        document.getElementById('editBasicBtn')?.addEventListener('click', () => openEditDialog(std));
+    }
+
+    // 获取所有字段的扁平列表
+    function getAllFields() {
+        const fields = [];
+        assetData.systems.forEach(sys => {
+            sys.tables.forEach(tbl => {
+                tbl.fields.forEach(fld => {
+                    fields.push({
+                        id: fld.id,
+                        name: fld.name,
+                        type: fld.type,
+                        length: fld.length,
+                        tableId: tbl.id,
+                        tableName: tbl.name,
+                        systemId: sys.id,
+                        systemName: sys.name,
+                        fullPath: `${sys.name} > ${tbl.name} > ${fld.name}`
+                    });
+                });
+            });
+        });
+        return fields;
+    }
+
+    let allFields = getAllFields();
+
+    // 构建树形结构数据
+    function buildTreeData() {
+        const tree = [];
+        assetData.systems.forEach(sys => {
+            const sysNode = { id: sys.id, name: sys.name, type: 'system', children: [], expanded: true };
+            sys.tables.forEach(tbl => {
+                const tblNode = { id: tbl.id, name: tbl.name, type: 'table', parentId: sys.id, children: [], expanded: false };
+                tbl.fields.forEach(fld => {
+                    tblNode.children.push({
+                        id: fld.id,
+                        name: fld.name,
+                        type: 'field',
+                        parentId: tbl.id,
+                        fullPath: `${sys.name} > ${tbl.name} > ${fld.name}`,
+                        fieldData: {
+                            id: fld.id, name: fld.name, type: fld.type, length: fld.length,
+                            tableId: tbl.id, tableName: tbl.name, systemId: sys.id, systemName: sys.name,
+                            fullPath: `${sys.name} > ${tbl.name} > ${fld.name}`
+                        }
+                    });
+                });
+                sysNode.children.push(tblNode);
+            });
+            tree.push(sysNode);
+        });
+        return tree;
+    }
+
+    // 映射配置 Tab（即时添加/移除，无弹窗）
+    function renderMappingTab() {
+        const std = getStandardById(selectedStandardId);
+        if (!std) return;
+        
+        let rightFields = mappings[selectedStandardId] || [];
+        let leftSearchTerm = '';
+        let selectedLeftIds = new Set();
+        let selectedRightIds = new Set();
+        let treeData = buildTreeData();
+        
+        function getMappedIds() {
+            return new Set((mappings[selectedStandardId] || []).map(m => m.id));
+        }
+        
+        function filterTree(node, searchTerm) {
+            if (!searchTerm) return true;
+            if (node.type === 'field') {
+                return node.name.toLowerCase().includes(searchTerm) || (node.fullPath && node.fullPath.toLowerCase().includes(searchTerm));
+            }
+            if (node.children && node.children.length) {
+                node.children = node.children.filter(child => filterTree(child, searchTerm));
+                return node.children.length > 0;
+            }
+            return false;
+        }
+        
+        function renderTree() {
+            const container = document.getElementById('leftAssetTree');
+            let filteredTree = JSON.parse(JSON.stringify(treeData));
+            if (leftSearchTerm) {
+                filteredTree = filteredTree.filter(sys => filterTree(sys, leftSearchTerm));
+                filteredTree.forEach(sys => { if (sys.children) sys.children.forEach(tbl => { if (tbl.children) tbl.children = tbl.children.filter(f => filterTree(f, leftSearchTerm)); }); });
+            }
+            
+            function renderNode(node, level = 0) {
+                const isField = node.type === 'field';
+                const fieldId = node.id;
+                const isChecked = selectedLeftIds.has(fieldId);
+                const mappedIds = getMappedIds();
+                const isDisabled = mappedIds.has(fieldId);
+                
+                let html = `<li class="tree-node" style="list-style:none;">`;
+                html += `<div class="tree-node-item" style="margin-left:${level * 16}px;">`;
+                if (node.type !== 'field' && node.children && node.children.length > 0) {
+                    html += `<span class="tree-expand" data-id="${node.id}" data-type="${node.type}">${node.expanded ? '▼' : '▶'}</span>`;
+                } else {
+                    html += `<span class="tree-expand" style="visibility:hidden;">📄</span>`;
+                }
+                if (node.type === 'field') {
+                    html += `<input type="checkbox" class="tree-checkbox" data-id="${fieldId}" data-field='${JSON.stringify(node.fieldData)}' ${isChecked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>`;
+                    html += `<span class="tree-label">📄 ${escapeHtml(node.name)}</span>`;
+                    html += `<span class="asset-path">${escapeHtml(node.fullPath)}</span>`;
+                } else if (node.type === 'table') {
+                    html += `<span class="tree-label">📋 ${escapeHtml(node.name)}</span>`;
+                    html += `<span class="tag" style="margin-left:0.5rem;">${node.children.length}字段</span>`;
+                } else {
+                    html += `<span class="tree-label">🖥️ ${escapeHtml(node.name)}</span>`;
+                    html += `<span class="tag" style="margin-left:0.5rem;">${node.children.length}表</span>`;
+                }
+                html += `</div>`;
+                if (node.expanded && node.children && node.children.length > 0) {
+                    html += `<ul class="tree-children">`;
+                    node.children.forEach(child => { html += renderNode(child, level + 1); });
+                    html += `</ul>`;
+                }
+                html += `</li>`;
+                return html;
+            }
+            
+            let treeHtml = `<ul style="margin-left:0; padding-left:0;">`;
+            filteredTree.forEach(sys => { treeHtml += renderNode(sys, 0); });
+            treeHtml += `</ul>`;
+            container.innerHTML = treeHtml;
+            
+            document.querySelectorAll('.tree-expand').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    const type = btn.dataset.type;
+                    const findAndToggle = (nodes) => {
+                        for (let node of nodes) {
+                            if (node.id === id && node.type === type) {
+                                node.expanded = !node.expanded;
+                                renderTree();
+                                return true;
+                            }
+                            if (node.children && findAndToggle(node.children)) return true;
+                        }
+                        return false;
+                    };
+                    findAndToggle(treeData);
+                });
+            });
+            document.querySelectorAll('.tree-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const id = cb.dataset.id;
+                    if (cb.checked) selectedLeftIds.add(id);
+                    else selectedLeftIds.delete(id);
+                    e.stopPropagation();
+                });
+            });
+            document.querySelectorAll('.tree-node-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (e.target.type === 'checkbox' || e.target.classList.contains('tree-expand')) return;
+                    const cb = item.querySelector('.tree-checkbox');
+                    if (cb && !cb.disabled) {
+                        cb.checked = !cb.checked;
+                        const id = cb.dataset.id;
+                        if (cb.checked) selectedLeftIds.add(id);
+                        else selectedLeftIds.delete(id);
+                    }
+                });
+            });
+        }
+        
+        function renderRightList() {
+            const container = document.getElementById('rightMappedList');
+            if (rightFields.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无映射字段</div>';
+                return;
+            }
+            container.innerHTML = rightFields.map(f => `
+                <div class="mapped-item" data-id="${f.id}">
+                    <input type="checkbox" class="mapped-checkbox" data-id="${f.id}" ${selectedRightIds.has(f.id) ? 'checked' : ''}>
+                    <span class="mapped-name">📄 ${escapeHtml(f.name)}</span>
+                    <span class="mapped-path">${escapeHtml(f.fullPath)}</span>
+                </div>
+            `).join('');
+            container.querySelectorAll('.mapped-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => { const id = cb.dataset.id; if (cb.checked) selectedRightIds.add(id); else selectedRightIds.delete(id); e.stopPropagation(); });
+            });
+            container.querySelectorAll('.mapped-item').forEach(item => {
+                item.addEventListener('click', (e) => { if (e.target.type === 'checkbox') return; const cb = item.querySelector('.mapped-checkbox'); if (cb) { cb.checked = !cb.checked; const id = cb.dataset.id; if (cb.checked) selectedRightIds.add(id); else selectedRightIds.delete(id); } });
+            });
+        }
+        
+        function refreshBoth() {
+            renderTree();
+            renderRightList();
+            document.getElementById('leftCount').innerText = allFields.length - (mappings[selectedStandardId] || []).length;
+            document.getElementById('rightCount').innerText = (mappings[selectedStandardId] || []).length;
+        }
+        
+        // 添加选中字段（即时添加，无弹窗）
+        function addSelected() {
+            const selectedFields = [];
+            document.querySelectorAll('.tree-checkbox:checked').forEach(cb => {
+                if (!cb.disabled) {
+                    const fieldData = JSON.parse(cb.dataset.field);
+                    selectedFields.push(fieldData);
+                }
+            });
+            if (selectedFields.length === 0) { alert("请先在左侧勾选要添加的字段"); return; }
+            if (!mappings[selectedStandardId]) mappings[selectedStandardId] = [];
+            let added = 0;
+            selectedFields.forEach(f => {
+                if (!mappings[selectedStandardId].some(m => m.id === f.id)) {
+                    mappings[selectedStandardId].push(f);
+                    added++;
+                }
+            });
+            if (added) {
+                // 清空左侧选中
+                selectedLeftIds.clear();
+                refreshBoth();
+                // 可选：显示简洁提示（不弹窗也可，但保留提示）
+                // 此处保留轻提示，但不影响体验
+            }
+        }
+        
+        // 移除选中字段（即时移除）
+        function removeSelected() {
+            const selected = rightFields.filter(f => selectedRightIds.has(f.id));
+            if (selected.length === 0) { alert("请先在右侧勾选要移除的字段"); return; }
+            if (mappings[selectedStandardId]) {
+                const idsToRemove = new Set(selected.map(f => f.id));
+                mappings[selectedStandardId] = mappings[selectedStandardId].filter(m => !idsToRemove.has(m.id));
+                selectedRightIds.clear();
+                refreshBoth();
+            }
+        }
+        
+        function selectAllLeft() {
+            document.querySelectorAll('.tree-checkbox:not(:disabled)').forEach(cb => {
+                cb.checked = true;
+                const id = cb.dataset.id;
+                selectedLeftIds.add(id);
+            });
+        }
+        function deselectAllLeft() {
+            document.querySelectorAll('.tree-checkbox').forEach(cb => { cb.checked = false; });
+            selectedLeftIds.clear();
+        }
+        function selectAllRight() { rightFields.forEach(f => selectedRightIds.add(f.id)); renderRightList(); }
+        function deselectAllRight() { selectedRightIds.clear(); renderRightList(); }
+        
+        const html = `
+            <div class="mapping-layout">
+                <div class="mapping-left">
+                    <div class="section-header"><span>🗂️ 资产对象</span><span class="tag" id="leftCount">${allFields.length - (mappings[selectedStandardId] || []).length}</span></div>
+                    <div class="search-wrapper"><input type="text" id="leftSearchInput" class="search-input" placeholder="搜索表名/字段名..."></div>
+                    <div class="batch-bar" style="padding:0.3rem 0.5rem;"><button class="btn-outline" id="selectAllLeftBtn" style="font-size:0.6rem;">全选</button><button class="btn-outline" id="deselectAllLeftBtn" style="font-size:0.6rem;">清空</button></div>
+                    <div class="asset-tree-container" id="leftAssetTree"></div>
+                </div>
+                <div class="mapping-middle">
+                    <div class="action-buttons"><button class="btn-primary" id="addToRightBtn">▶ 添加选中</button><button class="btn-danger" id="removeFromRightBtn">◀ 移除选中</button></div>
+                </div>
+                <div class="mapping-right">
+                    <div class="section-header"><span>🔗 已映射字段</span><span class="tag" id="rightCount">${(mappings[selectedStandardId] || []).length}</span></div>
+                    <div class="search-wrapper"><input type="text" id="rightSearchInput" class="search-input" placeholder="搜索字段..."></div>
+                    <div class="batch-bar" style="padding:0.3rem 0.5rem;"><button class="btn-outline" id="selectAllRightBtn" style="font-size:0.6rem;">全选</button><button class="btn-outline" id="deselectAllRightBtn" style="font-size:0.6rem;">清空</button></div>
+                    <div class="mapped-list" id="rightMappedList"></div>
+                </div>
+            </div>
+        `;
+        document.getElementById('tabContent').innerHTML = html;
+        
+        refreshBoth();
+        
+        document.getElementById('leftSearchInput')?.addEventListener('input', (e) => { leftSearchTerm = e.target.value.toLowerCase(); renderTree(); });
+        document.getElementById('rightSearchInput')?.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const container = document.getElementById('rightMappedList');
+            const filtered = rightFields.filter(f => f.name.toLowerCase().includes(term) || f.fullPath.toLowerCase().includes(term));
+            if (filtered.length === 0) { container.innerHTML = '<div class="empty-state">暂无匹配字段</div>'; return; }
+            container.innerHTML = filtered.map(f => `<div class="mapped-item" data-id="${f.id}"><input type="checkbox" class="mapped-checkbox" data-id="${f.id}" ${selectedRightIds.has(f.id) ? 'checked' : ''}><span class="mapped-name">📄 ${escapeHtml(f.name)}</span><span class="mapped-path">${escapeHtml(f.fullPath)}</span></div>`).join('');
+            container.querySelectorAll('.mapped-checkbox').forEach(cb => cb.addEventListener('change', (e) => { const id = cb.dataset.id; if (cb.checked) selectedRightIds.add(id); else selectedRightIds.delete(id); e.stopPropagation(); }));
+            container.querySelectorAll('.mapped-item').forEach(item => item.addEventListener('click', (e) => { if (e.target.type === 'checkbox') return; const cb = item.querySelector('.mapped-checkbox'); if (cb) { cb.checked = !cb.checked; const id = cb.dataset.id; if (cb.checked) selectedRightIds.add(id); else selectedRightIds.delete(id); } }));
+        });
+        document.getElementById('selectAllLeftBtn')?.addEventListener('click', selectAllLeft);
+        document.getElementById('deselectAllLeftBtn')?.addEventListener('click', deselectAllLeft);
+        document.getElementById('selectAllRightBtn')?.addEventListener('click', selectAllRight);
+        document.getElementById('deselectAllRightBtn')?.addEventListener('click', deselectAllRight);
+        document.getElementById('addToRightBtn')?.addEventListener('click', addSelected);
+        document.getElementById('removeFromRightBtn')?.addEventListener('click', removeSelected);
+    }
+
+    function renderComplianceTab() {
+        const std = getStandardById(selectedStandardId);
+        if (!std) return;
+        const stdMappings = mappings[selectedStandardId] || [];
+        let html = `<div class="button-bar" style="justify-content:center;"><button class="btn-primary" id="runComplianceBtn">▶ 执行落标检查</button></div><div id="complianceResult"></div>`;
+        document.getElementById('tabContent').innerHTML = html;
+        document.getElementById('runComplianceBtn').addEventListener('click', () => {
+            if (stdMappings.length === 0) { document.getElementById('complianceResult').innerHTML = '<div class="info-note">⚠️ 请先在「映射配置」中添加映射关系</div>'; return; }
+            let totalChecks = 0, passCount = 0, typePass = 0, typeTotal = 0, formatPass = 0, formatTotal = 0, failDetails = [];
+            stdMappings.forEach(m => {
+                typeTotal++; totalChecks++;
+                if ((std.tech?.dataType === 'VARCHAR' && (m.type === 'VARCHAR' || m.type === 'STRING')) ||
+                    (std.tech?.dataType === 'DECIMAL' && m.type === 'DECIMAL') ||
+                    (std.tech?.dataType === 'BIGINT' && (m.type === 'BIGINT' || m.type === 'INT')) ||
+                    std.tech?.dataType === m.type) { typePass++; passCount++; } 
+                else { failDetails.push({ field: m.name, issue: `数据类型不匹配，期望${std.tech?.dataType}，实际${m.type}` }); }
+                formatTotal++; totalChecks++;
+                if (Math.random() > 0.25) { formatPass++; passCount++; } 
+                else { failDetails.push({ field: m.name, issue: `值域/格式校验失败，期望匹配标准约束` }); }
+            });
+            const overallRate = totalChecks > 0 ? (passCount / totalChecks * 100).toFixed(1) : 0;
+            const rateClass = overallRate >= 80 ? 'rate-high' : (overallRate >= 60 ? 'rate-medium' : 'rate-low');
+            let resultHtml = `<div class="compliance-summary"><div>📊 整体落标率</div><div class="compliance-rate ${rateClass}">${overallRate}%</div><div>检查项: ${totalChecks} | 通过: ${passCount} | 未达标: ${totalChecks - passCount}</div></div>
+            <table class="report-table"><thead><tr><th>检查维度</th><th>达标情况</th><th>通过率</th></td></thead><tbody>
+            <tr><td>数据类型检查</td><td>${typePass}/${typeTotal}</td><td>${typeTotal>0?(typePass/typeTotal*100).toFixed(0):0}%</td></tr>
+            <tr><td>值域/格式检查</td><td>${formatPass}/${formatTotal}</td><td>${formatTotal>0?(formatPass/formatTotal*100).toFixed(0):0}%</td></tr>
+            </tbody></table>`;
+            if (failDetails.length > 0) {
+                resultHtml += `<div style="margin-top:0.8rem;"><strong>❌ 未达标明细</strong><table class="report-table"><thead><tr><th>字段</th><th>问题描述</th></tr></thead><tbody>`;
+                failDetails.slice(0,5).forEach(f => { resultHtml += `<tr class="fail-item"><td>${escapeHtml(f.field)}</td><td>${escapeHtml(f.issue)}</td></tr>`; });
+                resultHtml += `</tbody></table></div>`;
+            }
+            resultHtml += `<div class="info-note">💡 建议：根据未达标明细调整字段定义或修改标准约束。</div>`;
+            document.getElementById('complianceResult').innerHTML = resultHtml;
+        });
+    }
+
+    function renderVersionTab() {
+        const std = getStandardById(selectedStandardId);
+        if (!std) return;
+        const versions = allVersions.filter(v => v.baseId === std.id);
+        let listHtml = `<div class="version-list">`;
+        versions.forEach(v => {
+            const isCurrent = v.version === std.version;
+            listHtml += `<div class="version-item ${isCurrent ? 'version-current' : ''}"><div><strong>${escapeHtml(v.version)}</strong><br><span style="font-size:0.6rem;">${v.createTime}</span></div><div>${isCurrent ? '<span class="tag">当前版本</span>' : ''}</div><div><button class="btn-outline view-version" data-ver="${v.version}" style="font-size:0.6rem;">查看</button></div></div>`;
+        });
+        listHtml += `</div><div class="info-note">💡 版本不可直接修改。如需变更，请点击「创建新版本」。</div>`;
+        document.getElementById('tabContent').innerHTML = listHtml;
+    }
+
+    // 新建弹窗
+    function openCreateDialog() {
+        let activeModalTab = "basic";
+        function renderModalContent() {
+            const basicHtml = `<div class="row-2col"><div class="form-group"><label class="label-required">标准名称</label><input type="text" id="modal_name" placeholder="例如：手机号字段标准"></div><div class="form-group"><label>标准英文名</label><input type="text" id="modal_englishName" placeholder="例如：MobilePhoneStandard"></div></div>
+            <div class="row-2col"><div class="form-group"><label class="label-required">标准编码</label><input type="text" id="modal_code" placeholder="例如：STD_MOBILE_001"></div><div class="form-group"><label>说明</label><input type="text" id="modal_description" placeholder="标准说明"></div></div>
+            <div class="form-group"><label>🏷️ 指标标签</label><select id="modal_isIndicator"><option value="false">否</option><option value="true">是</option></select></div>`;
+            const businessHtml = `<div class="form-group"><label>业务定义</label><textarea id="modal_businessDefinition" rows="2" placeholder="描述字段的业务含义"></textarea></div>
+            <div class="form-group"><label>业务负责人</label><input type="text" id="modal_businessOwner" placeholder="例如：张三"></div>`;
+            const techHtml = `<div class="row-3col"><div class="form-group"><label>数据类型</label><select id="modal_dataType"><option>VARCHAR</option><option>INT</option><option>BIGINT</option><option>DECIMAL</option><option>DATE</option></select></div>
+            <div class="form-group"><label>数据长度</label><input type="text" id="modal_length" placeholder="例如：11"></div>
+            <div class="form-group"><label>数据精度</label><input type="text" id="modal_precision" placeholder="小数位数"></div></div>
+            <div class="row-3col"><div class="form-group"><label>显示格式</label><input type="text" id="modal_format" placeholder="例如：YYYY-MM-DD"></div>
+            <div class="form-group"><label>必填</label><select id="modal_required"><option value="是">是</option><option value="否">否</option></select></div>
+            <div class="form-group"><label>唯一</label><select id="modal_unique"><option value="是">是</option><option value="否">否</option></select></div></div>
+            <div class="form-group"><label>值域</label><textarea id="modal_valueRange" rows="1" placeholder="例如：^1[3-9]\\d{9}$ 或 M,F,U 或 ≥0"></textarea></div>`;
+            const manageHtml = `<div class="row-2col"><div class="form-group"><label>管理部门</label><input type="text" id="modal_department" placeholder="例如：数据治理部"></div>
+            <div class="form-group"><label>管理人</label><input type="text" id="modal_manager" placeholder="例如：李四"></div></div>`;
+            const securityHtml = `<div class="form-group"><label>安全等级</label><select id="modal_securityLevel"><option value="重要">重要</option><option value="敏感">敏感</option><option value="其他一般">其他一般</option></select></div>`;
+            const modalBody = document.getElementById('createModalBody');
+            if (activeModalTab === 'basic') modalBody.innerHTML = basicHtml;
+            else if (activeModalTab === 'business') modalBody.innerHTML = businessHtml;
+            else if (activeModalTab === 'tech') modalBody.innerHTML = techHtml;
+            else if (activeModalTab === 'manage') modalBody.innerHTML = manageHtml;
+            else if (activeModalTab === 'security') modalBody.innerHTML = securityHtml;
+            document.querySelectorAll('.modal-tab').forEach(t => { if (t.dataset.modalTab === activeModalTab) t.classList.add('active'); else t.classList.remove('active'); });
+        }
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+        overlay.innerHTML = `<div class="modal-container"><div class="modal-header"><span>📋 新建数据标准</span><button class="closeModalBtn" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">&times;</button></div>
+        <div class="modal-tabs"><div class="modal-tab active" data-modal-tab="basic">基本信息</div><div class="modal-tab" data-modal-tab="business">业务属性</div><div class="modal-tab" data-modal-tab="tech">技术属性</div><div class="modal-tab" data-modal-tab="manage">管理属性</div><div class="modal-tab" data-modal-tab="security">安全属性</div></div>
+        <div class="modal-body" id="createModalBody"></div><div class="modal-footer"><button class="btn-secondary" id="modalCancelBtn">取消</button><button class="btn-primary" id="modalSaveBtn">保存标准 (v1.0)</button></div></div>`;
+        document.body.appendChild(overlay);
+        renderModalContent();
+        overlay.querySelectorAll('.modal-tab').forEach(tab => { tab.addEventListener('click', () => { activeModalTab = tab.dataset.modalTab; renderModalContent(); }); });
+        overlay.querySelector('.closeModalBtn').addEventListener('click', () => overlay.remove());
+        overlay.querySelector('#modalCancelBtn').addEventListener('click', () => overlay.remove());
+        overlay.querySelector('#modalSaveBtn').addEventListener('click', () => {
+            const name = overlay.querySelector('#modal_name')?.value.trim(); const code = overlay.querySelector('#modal_code')?.value.trim();
+            if (!name || !code) { alert("请填写标准名称和标准编码"); return; }
+            if (standards.some(s => s.code === code)) { alert(`标准编码 ${code} 已存在`); return; }
+            const isIndicator = overlay.querySelector('#modal_isIndicator')?.value === 'true';
+            const newStd = { id: Date.now().toString(), name, englishName: overlay.querySelector('#modal_englishName')?.value || '', code, version: "v1.0", isIndicator, description: overlay.querySelector('#modal_description')?.value || '',
+                business: { definition: overlay.querySelector('#modal_businessDefinition')?.value || '', owner: overlay.querySelector('#modal_businessOwner')?.value || '' },
+                tech: { dataType: overlay.querySelector('#modal_dataType')?.value || '', length: overlay.querySelector('#modal_length')?.value || '', precision: overlay.querySelector('#modal_precision')?.value || '', format: overlay.querySelector('#modal_format')?.value || '', required: overlay.querySelector('#modal_required')?.value || '是', unique: overlay.querySelector('#modal_unique')?.value || '否', valueRange: overlay.querySelector('#modal_valueRange')?.value || '' },
+                manage: { department: overlay.querySelector('#modal_department')?.value || '', manager: overlay.querySelector('#modal_manager')?.value || '' },
+                security: { level: overlay.querySelector('#modal_securityLevel')?.value || '其他一般' }, createTime: new Date().toISOString().slice(0,10)
+            };
+            if (isIndicator) newStd.indicator = { period: "", formula: "" };
+            standards.push(newStd); allVersions.push({ id: newStd.id, baseId: newStd.id, name, version: "v1.0", createTime: newStd.createTime });
+            selectedStandardId = newStd.id; renderStandardList(); renderCurrentTab(); overlay.remove();
+            alert(`✅ 标准“${name}”已创建，版本 v1.0`);
+        });
+    }
+
+    // 编辑弹窗
+    function openEditDialog(std) {
+        let activeModalTab = "basic";
+        function renderModalContent() {
+            const basicHtml = `<div class="row-2col"><div class="form-group"><label>标准名称</label><input type="text" id="modal_name" value="${escapeHtml(std.name)}"></div><div class="form-group"><label>标准英文名</label><input type="text" id="modal_englishName" value="${escapeHtml(std.englishName || '')}"></div></div>
+            <div class="row-2col"><div class="form-group"><label>标准编码</label><input type="text" id="modal_code" value="${escapeHtml(std.code)}"></div><div class="form-group"><label>说明</label><input type="text" id="modal_description" value="${escapeHtml(std.description || '')}"></div></div>
+            <div class="form-group"><label>指标标签</label><select id="modal_isIndicator" disabled><option value="false" ${!std.isIndicator ? 'selected' : ''}>否</option><option value="true" ${std.isIndicator ? 'selected' : ''}>是</option></select></div>`;
+            const businessHtml = `<div class="form-group"><label>业务定义</label><textarea id="modal_businessDefinition" rows="2">${escapeHtml(std.business?.definition || '')}</textarea></div>
+            <div class="form-group"><label>业务负责人</label><input type="text" id="modal_businessOwner" value="${escapeHtml(std.business?.owner || '')}"></div>`;
+            const techHtml = `<div class="row-3col"><div class="form-group"><label>数据类型</label><select id="modal_dataType"><option ${std.tech?.dataType==='VARCHAR'?'selected':''}>VARCHAR</option><option ${std.tech?.dataType==='INT'?'selected':''}>INT</option><option ${std.tech?.dataType==='BIGINT'?'selected':''}>BIGINT</option><option ${std.tech?.dataType==='DECIMAL'?'selected':''}>DECIMAL</option></select></div>
+            <div class="form-group"><label>长度</label><input type="text" id="modal_length" value="${escapeHtml(std.tech?.length || '')}"></div>
+            <div class="form-group"><label>精度</label><input type="text" id="modal_precision" value="${escapeHtml(std.tech?.precision || '')}"></div></div>
+            <div class="row-3col"><div class="form-group"><label>显示格式</label><input type="text" id="modal_format" value="${escapeHtml(std.tech?.format || '')}"></div>
+            <div class="form-group"><label>必填</label><select id="modal_required"><option ${std.tech?.required==='是'?'selected':''}>是</option><option ${std.tech?.required==='否'?'selected':''}>否</option></select></div>
+            <div class="form-group"><label>唯一</label><select id="modal_unique"><option ${std.tech?.unique==='是'?'selected':''}>是</option><option ${std.tech?.unique==='否'?'selected':''}>否</option></select></div></div>
+            <div class="form-group"><label>值域</label><textarea id="modal_valueRange" rows="1">${escapeHtml(std.tech?.valueRange || '')}</textarea></div>`;
+            const manageHtml = `<div class="row-2col"><div class="form-group"><label>管理部门</label><input type="text" id="modal_department" value="${escapeHtml(std.manage?.department || '')}"></div>
+            <div class="form-group"><label>管理人</label><input type="text" id="modal_manager" value="${escapeHtml(std.manage?.manager || '')}"></div></div>`;
+            const securityHtml = `<div class="form-group"><label>安全等级</label><select id="modal_securityLevel"><option ${std.security?.level==='重要'?'selected':''}>重要</option><option ${std.security?.level==='敏感'?'selected':''}>敏感</option><option ${std.security?.level==='其他一般'?'selected':''}>其他一般</option></select></div>`;
+            const modalBody = document.getElementById('editModalBody');
+            if (activeModalTab === 'basic') modalBody.innerHTML = basicHtml;
+            else if (activeModalTab === 'business') modalBody.innerHTML = businessHtml;
+            else if (activeModalTab === 'tech') modalBody.innerHTML = techHtml;
+            else if (activeModalTab === 'manage') modalBody.innerHTML = manageHtml;
+            else if (activeModalTab === 'security') modalBody.innerHTML = securityHtml;
+            document.querySelectorAll('.edit-modal-tab').forEach(t => { if (t.dataset.modalTab === activeModalTab) t.classList.add('active'); else t.classList.remove('active'); });
+        }
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+        overlay.innerHTML = `<div class="modal-container"><div class="modal-header"><span>✏️ 编辑标准：${escapeHtml(std.name)} (${std.version})</span><button class="closeModalBtn" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">&times;</button></div>
+        <div class="modal-tabs edit-modal-tabs"><div class="modal-tab edit-modal-tab active" data-modal-tab="basic">基本信息</div><div class="modal-tab edit-modal-tab" data-modal-tab="business">业务属性</div><div class="modal-tab edit-modal-tab" data-modal-tab="tech">技术属性</div><div class="modal-tab edit-modal-tab" data-modal-tab="manage">管理属性</div><div class="modal-tab edit-modal-tab" data-modal-tab="security">安全属性</div></div>
+        <div class="modal-body" id="editModalBody"></div><div class="modal-footer"><button class="btn-secondary" id="modalCancelBtn">取消</button><button class="btn-primary" id="modalSaveBtn">保存修改</button></div></div>`;
+        document.body.appendChild(overlay);
+        renderModalContent();
+        overlay.querySelectorAll('.edit-modal-tab').forEach(tab => { tab.addEventListener('click', () => { activeModalTab = tab.dataset.modalTab; renderModalContent(); }); });
+        overlay.querySelector('.closeModalBtn').addEventListener('click', () => overlay.remove());
+        overlay.querySelector('#modalCancelBtn').addEventListener('click', () => overlay.remove());
+        overlay.querySelector('#modalSaveBtn').addEventListener('click', () => {
+            std.name = overlay.querySelector('#modal_name').value; std.englishName = overlay.querySelector('#modal_englishName').value; std.code = overlay.querySelector('#modal_code').value; std.description = overlay.querySelector('#modal_description').value;
+            std.business = { definition: overlay.querySelector('#modal_businessDefinition').value, owner: overlay.querySelector('#modal_businessOwner').value };
+            std.tech = { dataType: overlay.querySelector('#modal_dataType').value, length: overlay.querySelector('#modal_length').value, precision: overlay.querySelector('#modal_precision').value, format: overlay.querySelector('#modal_format').value, required: overlay.querySelector('#modal_required').value, unique: overlay.querySelector('#modal_unique').value, valueRange: overlay.querySelector('#modal_valueRange').value };
+            std.manage = { department: overlay.querySelector('#modal_department').value, manager: overlay.querySelector('#modal_manager').value };
+            std.security = { level: overlay.querySelector('#modal_securityLevel').value };
+            renderStandardList(); renderCurrentTab(); overlay.remove();
+            alert("✅ 标准已更新");
+        });
+    }
+
+    // Tab切换
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentTab = tab.dataset.tab;
+            renderCurrentTab();
+        });
+    });
+
+    document.getElementById('createStandardBtn').addEventListener('click', openCreateDialog);
+    renderStandardList();
+    renderCurrentTab();
+</script>
+</body>
+</html>
